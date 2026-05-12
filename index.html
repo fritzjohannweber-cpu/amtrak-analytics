@@ -1,0 +1,809 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>RTC-Viriato Analytics Portal</title>
+        <style>
+            :root { --bg: #F8FAFC; --card: #FFFFFF; --text: #1E293B; --primary: #1E3A8A; --border: #E2E8F0; }
+            body { font-family: 'Arial', sans-serif; background: var(--bg); color: var(--text); padding: 2rem; margin: 0; }
+            .header { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: 0 auto 2rem auto; border-bottom: 2px solid var(--border); padding-bottom: 1rem; }
+            h2 { margin: 0; font-weight: 700; color: var(--primary); font-size: 1.8rem; }
+            .timestamp { color: #64748B; font-size: 0.9rem; }
+            .filters { display: flex; gap: 0.5rem; }
+            .filter-btn { padding: 0.5rem 1rem; border: 1px solid var(--border); background: var(--card); color: #475569; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+            .filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+            .filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+            
+            .list-container { display: flex; flex-direction: column; gap: 0.75rem; max-width: 1400px; margin: 0 auto; }
+            
+            .list-row { 
+                background: var(--card); 
+                border-radius: 8px; 
+                padding: 1rem 1.5rem; 
+                display: grid; 
+                grid-template-columns: 180px 1fr 180px 240px 280px; 
+                align-items: center; 
+                gap: 1.5rem; 
+                border: 1px solid var(--border); 
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+                transition: all 0.2s ease; 
+            }
+            .list-row:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.05); transform: translateY(-1px); }
+            
+            .col-corridor { display: flex; flex-direction: column; gap: 0.35rem; }
+            .col-corridor h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #0F172A; }
+            
+            .badge { display: inline-block; width: fit-content; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-align: center; }
+            .badge-am { background: #DBEAFE; color: #1D4ED8; }
+            .badge-mnr { background: #D1FAE5; color: #047857; }
+            
+            .col-route { display: flex; align-items: center; }
+            .route-name { font-size: 0.9rem; color: #475569; margin: 0; line-height: 1.4; }
+            
+            .col-mileposts { display: flex; flex-direction: column; gap: 0.2rem; }
+            .meta-label { font-size: 0.65rem; text-transform: uppercase; color: #64748B; font-weight: 700; letter-spacing: 0.5px; }
+            .mp-value { font-size: 0.9rem; color: #0F172A; font-weight: 600; font-family: monospace; }
+            
+            .col-metrics { display: flex; gap: 1rem; }
+            .metric-item { flex: 1; display: flex; flex-direction: column; background: #F8FAFC; border: 1px solid var(--border); padding: 0.4rem 0.6rem; border-radius: 6px; align-items: center; gap: 0.1rem; }
+            .metric-item span { font-size: 0.65rem; text-transform: uppercase; color: #64748B; font-weight: 700; }
+            .metric-item strong { font-size: 0.85rem; color: #0F172A; }
+            
+            .col-actions { display: flex; gap: 0.5rem; }
+            .btn { flex: 1; text-align: center; text-decoration: none; padding: 0.6rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
+            .btn-outline { background: #EFF6FF; border: 1px solid #BFDBFE; color: #2563EB; }
+            .btn-outline:hover { border-color: #93C5FD; background: #DBEAFE; }
+            .btn-primary { background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626; }
+            .btn-primary:hover { background: #FEE2E2; border-color: #FCA5A5; }
+            
+            @media (max-width: 1024px) {
+                .list-row { grid-template-columns: 1fr 1fr; gap: 1rem; }
+                .col-route, .col-actions { grid-column: span 2; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <div><h2>Speed Profile Analytics</h2><div class="timestamp">RTC ↔ Viriato Integration Run | 2026-05-11 19:03</div></div>
+            <div class="filters">
+                <button class="filter-btn active" onclick="filterCards('all')">View All</button>
+                <button class="filter-btn" onclick="filterCards('AMTRAK')">Amtrak Only</button>
+                <button class="filter-btn" onclick="filterCards('MNR')">MNR Only</button>
+            </div>
+        </div>
+        <div class="list-container" id="cardGrid">
+        <div class="list-row item-AMTRAK">
+            <div class="col-corridor">
+                <h3>HellGate</h3>
+                <span class="badge badge-am">AMTRAK | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">HellGate | NEW ROCHELLE → CP HAROLD</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 16.15 → 0.99</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>16.4 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">0.8</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_HellGate__NEW_ROCHELLE_→_CP_HAROLD.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_HellGate__NEW_ROCHELLE_→_CP_HAROLD.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-AMTRAK">
+            <div class="col-corridor">
+                <h3>HellGate</h3>
+                <span class="badge badge-am">AMTRAK | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">HellGate | CP HAROLD → NEW ROCHELLE</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 1.19 → 16.15</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>16.2 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">0.4</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_HellGate__CP_HAROLD_→_NEW_ROCHELLE.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_HellGate__CP_HAROLD_→_NEW_ROCHELLE.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-AMTRAK">
+            <div class="col-corridor">
+                <h3>NEC</h3>
+                <span class="badge badge-am">AMTRAK | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">NEC | SECAUCUS JUNCTION STATION → HAMILTON</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 5.02 → 53.14</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>49.4 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.9</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_NEC__SECAUCUS_JUNCTION_STATION_→_HAMILTON.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_NEC__SECAUCUS_JUNCTION_STATION_→_HAMILTON.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-AMTRAK">
+            <div class="col-corridor">
+                <h3>NEC</h3>
+                <span class="badge badge-am">AMTRAK | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">NEC | HAMILTON → SECAUCUS JUNCTION STATION</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 53.14 → 5.02</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>49.4 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.9</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_NEC__HAMILTON_→_SECAUCUS_JUNCTION_STATION.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_NEC__HAMILTON_→_SECAUCUS_JUNCTION_STATION.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-AMTRAK">
+            <div class="col-corridor">
+                <h3>MRS</h3>
+                <span class="badge badge-am">AMTRAK | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">MRS | BERLIN → James Street</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 25.34 → 73.34</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>24.0 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.8</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_MRS__BERLIN_→_James_Street.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_MRS__BERLIN_→_James_Street.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-AMTRAK">
+            <div class="col-corridor">
+                <h3>MRS</h3>
+                <span class="badge badge-am">AMTRAK | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">MRS | James Street → BERLIN</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 73.34 → 25.34</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>24.0 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.8</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_MRS__James_Street_→_BERLIN.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_MRS__James_Street_→_BERLIN.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-AMTRAK">
+            <div class="col-corridor">
+                <h3>NHB</h3>
+                <span class="badge badge-am">AMTRAK | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">NHB | BOSTON (SOUTH STATION) → CP Division Post</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 228.69 → 72.67</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>156.0 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">1.0</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_NHB__BOSTON_(SOUTH_STATION)_→_CP_Division_Post.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_NHB__BOSTON_(SOUTH_STATION)_→_CP_Division_Post.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-AMTRAK">
+            <div class="col-corridor">
+                <h3>NHB</h3>
+                <span class="badge badge-am">AMTRAK | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">NHB | CP Division Post → BOSTON (SOUTH STATION)</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 72.67 → 228.69</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>156.0 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">1.0</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_NHB__CP_Division_Post_→_BOSTON_(SOUTH_STATION).html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_NHB__CP_Division_Post_→_BOSTON_(SOUTH_STATION).html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-AMTRAK">
+            <div class="col-corridor">
+                <h3>Empire</h3>
+                <span class="badge badge-am">AMTRAK | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Empire | CP 12 → CP Jervis</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 12.06 → 1.51</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>21.2 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">0.6</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Empire__CP_12_→_CP_Jervis.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Empire__CP_12_→_CP_Jervis.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-AMTRAK">
+            <div class="col-corridor">
+                <h3>Empire</h3>
+                <span class="badge badge-am">AMTRAK | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Empire | CP Jervis → CP 12</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 1.51 → 12.06</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>21.2 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">0.1</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Empire__CP_Jervis_→_CP_12.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Empire__CP_Jervis_→_CP_12.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Danbury</h3>
+                <span class="badge badge-mnr">MNR | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Danbury | CP Housatonic RR → CP 241</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 24.00 → 41.37</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>24.0 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.8</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Danbury__CP_Housatonic_RR_→_CP_241.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Danbury__CP_Housatonic_RR_→_CP_241.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Danbury</h3>
+                <span class="badge badge-mnr">MNR | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Danbury | CP 241 → CP Housatonic RR</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 41.37 → 24.20</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>24.2 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.9</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Danbury__CP_241_→_CP_Housatonic_RR.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Danbury__CP_241_→_CP_Housatonic_RR.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Harlem</h3>
+                <span class="badge badge-mnr">MNR | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Harlem | WASSAIC → CP 5</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 82.16 → 5.02</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>77.1 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.8</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Harlem__WASSAIC_→_CP_5.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Harlem__WASSAIC_→_CP_5.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Harlem</h3>
+                <span class="badge badge-mnr">MNR | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Harlem | CP 5 → WASSAIC</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 5.01 → 82.16</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>77.1 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">0.8</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Harlem__CP_5_→_WASSAIC.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Harlem__CP_5_→_WASSAIC.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Hudson</h3>
+                <span class="badge badge-mnr">MNR | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Hudson | CP Division Post (CSX) → GRAND CENTRAL TERMINAL</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 75.65 → 0.04</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>74.9 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.9</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Hudson__CP_Division_Post_(CSX)_→_GRAND_CENTRAL_TERMINAL.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Hudson__CP_Division_Post_(CSX)_→_GRAND_CENTRAL_TERMINAL.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Hudson</h3>
+                <span class="badge badge-mnr">MNR | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Hudson | GRAND CENTRAL TERMINAL → CP Division Post (CSX)</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 0.28 → 75.65</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>74.6 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">0.8</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Hudson__GRAND_CENTRAL_TERMINAL_→_CP_Division_Post_(CSX).html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Hudson__GRAND_CENTRAL_TERMINAL_→_CP_Division_Post_(CSX).html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>New Canaan</h3>
+                <span class="badge badge-mnr">MNR | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">New Canaan | NEW CANAAN → CP 235</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 7.75 → 34.46</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>6.3 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.9</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_New_Canaan__NEW_CANAAN_→_CP_235.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_New_Canaan__NEW_CANAAN_→_CP_235.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>New Canaan</h3>
+                <span class="badge badge-mnr">MNR | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">New Canaan | CP 235 → NEW CANAAN</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 34.46 → 7.92</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>6.5 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">0.8</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_New_Canaan__CP_235_→_NEW_CANAAN.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_New_Canaan__CP_235_→_NEW_CANAAN.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>New Haven</h3>
+                <span class="badge badge-mnr">MNR | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">New Haven | CP Division Post → WOODLAWN</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 72.90 → 11.75</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>61.3 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">0.8</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_New_Haven__CP_Division_Post_→_WOODLAWN.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_New_Haven__CP_Division_Post_→_WOODLAWN.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>New Haven</h3>
+                <span class="badge badge-mnr">MNR | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">New Haven | WOODLAWN → CP Division Post</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 11.75 → 72.90</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>61.3 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.8</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_New_Haven__WOODLAWN_→_CP_Division_Post.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_New_Haven__WOODLAWN_→_CP_Division_Post.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Port Jervis</h3>
+                <span class="badge badge-mnr">MNR | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Port Jervis | CP Sparrow → CP Division Post</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 31.80 → 97.36</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>65.6 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">0.5</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Port_Jervis__CP_Sparrow_→_CP_Division_Post.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Port_Jervis__CP_Sparrow_→_CP_Division_Post.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Port Jervis</h3>
+                <span class="badge badge-mnr">MNR | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Port Jervis | CP Division Post → CP Sparrow</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 97.36 → 31.41</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>66.0 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">0.5</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Port_Jervis__CP_Division_Post_→_CP_Sparrow.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Port_Jervis__CP_Division_Post_→_CP_Sparrow.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Pascack Valley</h3>
+                <span class="badge badge-mnr">MNR | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Pascack Valley | WOODBINE YARD → PEARL RIVER</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 25.67 → 31.45</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>5.8 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">-0.1</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Pascack_Valley__WOODBINE_YARD_→_PEARL_RIVER.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Pascack_Valley__WOODBINE_YARD_→_PEARL_RIVER.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Pascack Valley</h3>
+                <span class="badge badge-mnr">MNR | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Pascack Valley | PEARL RIVER → WOODBINE YARD</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 31.22 → 25.67</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>5.5 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #B45309;">-0.2</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Pascack_Valley__PEARL_RIVER_→_WOODBINE_YARD.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Pascack_Valley__PEARL_RIVER_→_WOODBINE_YARD.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Waterbury</h3>
+                <span class="badge badge-mnr">MNR | WB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Waterbury | WATERBURY → CP 261</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 27.00 → 60.50</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>27.0 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.9</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Waterbury__WATERBURY_→_CP_261.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Waterbury__WATERBURY_→_CP_261.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        
+        <div class="list-row item-MNR">
+            <div class="col-corridor">
+                <h3>Waterbury</h3>
+                <span class="badge badge-mnr">MNR | EB</span>
+            </div>
+            <div class="col-route">
+                <p class="route-name">Waterbury | CP 261 → WATERBURY</p>
+            </div>
+            <div class="col-mileposts">
+                <span class="meta-label">RTC Mileposts</span>
+                <strong class="mp-value">MP 60.75 → 27.00</strong>
+            </div>
+            <div class="col-metrics">
+                <div class="metric-item">
+                    <span>Distance</span>
+                    <strong>27.0 mi</strong>
+                </div>
+                <div class="metric-item">
+                    <span>Correlation</span>
+                    <strong style="color: #047857;">0.9</strong>
+                </div>
+            </div>
+            <div class="col-actions">
+                <a href="Pages/Profile_Waterbury__CP_261_→_WATERBURY.html" class="btn btn-outline">📈 Profile & Terrain</a>
+                <a href="Pages/Runtime_Waterbury__CP_261_→_WATERBURY.html" class="btn btn-primary">⏱ Section Runtimes</a>
+            </div>
+        </div>
+        </div>
+        <script>
+            function filterCards(type) {
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                event.target.classList.add('active');
+                document.querySelectorAll('.list-row').forEach(row => {
+                    if (type === 'all') { row.style.display = 'grid'; } 
+                    else { row.style.display = row.classList.contains('item-' + type) ? 'grid' : 'none'; }
+                });
+            }
+        </script>
+    </body></html>
